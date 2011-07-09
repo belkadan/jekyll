@@ -134,7 +134,7 @@ module Jekyll
       dependencies += layout.explicit_dependencies if layout
 
       if self.data['dependencies']
-        if self.data['dependencies'].is_a?(Enumerable)
+        if self.data['dependencies'].is_a?(Array)
           dependencies += self.data['dependencies']
         else
           dependencies << self.data['dependencies']
