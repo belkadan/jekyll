@@ -5,7 +5,8 @@ module Jekyll
   class Site
     attr_accessor :config, :layouts, :posts, :pages, :static_files,
                   :categories, :exclude, :source, :dest, :lsi, :pygments,
-                  :permalink_style, :tags, :time, :future, :safe, :plugins, :limit_posts
+                  :permalink_style, :tags, :time, :future, :safe, :plugins,
+                  :limit_posts, :dependencies
 
     attr_accessor :converters, :generators, :dependency_handlers
 
@@ -58,6 +59,13 @@ module Jekyll
       self.static_files    = []
       self.categories      = Hash.new { |hash, key| hash[key] = [] }
       self.tags            = Hash.new { |hash, key| hash[key] = [] }
+
+      self.dependencies    = Hash.new do |hash, name|
+        self.dependency_handlers.find do |handler|
+          hash[name] = handler.handle(name, self)
+        end
+        hash[name]
+      end
 
       if !self.limit_posts.nil? && self.limit_posts < 1
         raise ArgumentError, "Limit posts must be nil or >= 1"
@@ -189,10 +197,10 @@ module Jekyll
         resolve_basic = Proc.new do |item|
           item.mark_dirty if item.modified?(self.dest)
           item.explicit_dependencies.each do |dep_name|
-            dep_handled = self.dependency_handlers.find do |handler|
-              handler.handle(dep_name, item, self)
-            end
-            if not dep_handled
+            dependency = self.dependencies[dep_name]
+            if dependency
+              item.add_dependency(dependency)
+            else
               STDERR.puts "Warning: unknown dependency '#{dep_name}'"
               STDERR.puts "\t#{item.source}"
             end
