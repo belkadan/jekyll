@@ -1,6 +1,8 @@
 module Jekyll
 
   class StaticFile
+    include Dependent
+
     # The cache of last modification times [path] -> mtime.
     @@mtimes = Hash.new
 
@@ -33,14 +35,19 @@ module Jekyll
 
     # Returns last modification time for this file.
     def mtime
-      File.stat(path).mtime.to_i
+      File.stat(self.path).mtime
     end
 
     # Is source path modified?
     #
     # Returns true if modified since last write.
-    def modified?
-      @@mtimes[path] != mtime
+    def modified?(dest)
+      if not @@mtimes[self.path]
+        dest_path = self.destination(dest)
+        return true if not File.exist?(dest_path)
+        @@mtimes[self.path] = File.stat(dest_path).mtime
+      end
+      self.mtime > @@mtimes[self.path]
     end
 
     # Write the static file to the destination directory (if modified).
@@ -51,7 +58,7 @@ module Jekyll
     def write(dest)
       dest_path = destination(dest)
 
-      return false if File.exist?(dest_path) and !modified?
+      return false if not dirty?
       @@mtimes[path] = mtime
 
       FileUtils.mkdir_p(File.dirname(dest_path))

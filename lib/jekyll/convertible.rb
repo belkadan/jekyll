@@ -12,6 +12,8 @@ require 'set'
 #   self.output=
 module Jekyll
   module Convertible
+    include Dependent
+
     # Returns the contents as a String.
     def to_s
       self.content || ''
@@ -69,6 +71,7 @@ module Jekyll
     #
     # Returns nothing.
     def do_layout(payload, layouts)
+      return unless self.used?
       info = { :filters => [Jekyll::Filters], :registers => { :site => self.site } }
 
       # render and transform content (this becomes the final content of the object)
@@ -82,6 +85,8 @@ module Jekyll
       end
 
       self.transform
+
+      return unless self.dirty?
 
       # output keeps track of what will finally be written
       self.output = self.content
@@ -107,6 +112,36 @@ module Jekyll
           end
         end
       end
+    end
+    
+    def mtime
+      return @mtime if @mtime
+      time = File.stat(self.source).mtime if File.exist?(self.source)
+      layout = self.site.layouts[self.data['layout']]
+      @mtime = if layout.nil?
+        time
+      elsif time.nil?
+        layout.mtime
+      else
+        [time, layout.mtime].max
+      end
+    end
+    
+    def explicit_dependencies
+      dependencies = []
+
+      layout = self.site.layouts[self.data['layout']]
+      dependencies += layout.explicit_dependencies if layout
+
+      if self.data['dependencies']
+        if self.data['dependencies'].is_a?(Enumerable)
+          dependencies += self.data['dependencies']
+        else
+          dependencies << self.data['dependencies']
+        end
+      end
+      
+      dependencies
     end
   end
 end

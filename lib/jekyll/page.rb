@@ -150,6 +150,15 @@ module Jekyll
       basename == 'index'
     end
 
+    def source
+      File.join(@base, @dir, @name)
+    end
+    
+    def modified?(dest)
+      dest_path = self.destination(dest)
+      return true if not File.exist?(dest_path)
+      self.mtime > File.stat(dest_path).mtime
+    end
   end
 
 end

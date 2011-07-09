@@ -39,6 +39,10 @@ module Jekyll
     def process(name)
       self.ext = File.extname(name)
     end
+    
+    def source
+      File.join(@base, @name)
+    end
   end
 
 end

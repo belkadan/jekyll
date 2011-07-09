@@ -29,6 +29,7 @@ require 'albino'
 # internal requires
 require 'jekyll/core_ext'
 require 'jekyll/site'
+require 'jekyll/dependent'
 require 'jekyll/convertible'
 require 'jekyll/layout'
 require 'jekyll/page'

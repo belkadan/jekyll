@@ -37,6 +37,7 @@ module Jekyll
       self.reset
       self.read
       self.generate
+      self.resolve_dependencies
       self.render
       self.cleanup
       self.write
@@ -186,6 +187,30 @@ module Jekyll
         generator.generate(self)
       end
     end
+    
+    def resolve_dependencies
+      if self.config['full'] then
+        self.posts.each(&:mark_dirty)
+        self.pages.each(&:mark_dirty)
+        self.static_files.each(&:mark_dirty)
+      else
+        resolve_basic = Proc.new do |item|
+          item.mark_dirty if item.explicit_dependencies.include?('*') or item.modified?(self.dest)
+        end
+
+        self.pages.each(&resolve_basic)
+
+        self.posts.each do |post|
+          resolve_basic.call(post)
+          post.add_dependency(post.next)
+          post.add_dependency(post.previous)
+        end
+      
+        self.static_files.each do |file|
+          file.mark_dirty if file.modified?(self.dest)
+        end
+      end
+    end
 
     # Render the site to the destination.
     #
@@ -245,13 +270,16 @@ module Jekyll
     # Returns nothing.
     def write
       self.posts.each do |post|
-        post.write(self.dest)
+        post.write(self.dest) if post.dirty?
+        puts post.destination('') if post.dirty? and self.config['debug']
       end
       self.pages.each do |page|
-        page.write(self.dest)
+        page.write(self.dest) if page.dirty?
+        puts page.destination('') if page.dirty? and self.config['debug']
       end
       self.static_files.each do |sf|
-        sf.write(self.dest)
+        sf.write(self.dest) if sf.dirty?
+        puts sf.destination('') if sf.dirty? and self.config['debug']
       end
     end
 
