@@ -216,12 +216,14 @@ module Jekyll
     #
     # Returns nothing.
     def render
+      payload = site_payload
+
       self.posts.each do |post|
-        post.render(self.layouts, site_payload)
+        post.render(self.layouts, payload)
       end
 
       self.pages.each do |page|
-        page.render(self.layouts, site_payload)
+        page.render(self.layouts, payload)
       end
     rescue Errno::ENOENT => e
       # ignore missing layout dir
@@ -301,7 +303,7 @@ module Jekyll
           "time"       => self.time,
           "posts"      => self.posts.reverse,
           "pages"      => self.pages,
-          "html_pages" => self.pages.reject { |page| !page.html? },
+          "html_pages" => self.pages.select(&:html?),
           "categories" => self.categories,
           "tags"       => self.tags})}
     end
