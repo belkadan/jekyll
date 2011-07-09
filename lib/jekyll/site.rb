@@ -171,6 +171,8 @@ module Jekyll
       end
 
       self.posts.sort!
+      self.categories.each_value(&:sort!)
+      self.tags.each_value(&:sort!)
 
       # limit the posts if :limit_posts option is set
       self.posts = self.posts[-limit_posts, limit_posts] if limit_posts
@@ -196,9 +198,6 @@ module Jekyll
       self.pages.each do |page|
         page.render(self.layouts, site_payload)
       end
-
-      self.categories.values.map { |ps| ps.sort! { |a, b| b <=> a } }
-      self.tags.values.map { |ps| ps.sort! { |a, b| b <=> a } }
     rescue Errno::ENOENT => e
       # ignore missing layout dir
     end
