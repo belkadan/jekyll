@@ -225,11 +225,17 @@ module Jekyll
       end
 
       # adding files' parent directories
-      dirs = Set.new
-      files.each { |file| dirs << File.dirname(file) }
-      files.merge(dirs)
+      files_and_parents = Set.new
+      files.each do |file|
+        dir = File.dirname(file)
+        while dir != file
+          files_and_parents << file
+          file = dir
+          dir = File.dirname(file)
+        end
+      end
 
-      obsolete_files = dest_files - files
+      obsolete_files = dest_files - files_and_parents
 
       FileUtils.rm_rf(obsolete_files.to_a)
     end
