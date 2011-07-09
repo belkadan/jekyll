@@ -54,6 +54,7 @@ module Jekyll
   DEFAULTS = {
     'safe'         => false,
     'auto'         => false,
+    'full'         => false,
     'server'       => false,
     'server_port'  => 4000,
 
