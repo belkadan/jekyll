@@ -24,6 +24,18 @@ module Jekyll
     def self.subclasses
       @subclasses ||= []
     end
+    
+    def self.instantiate_all(config, allow_unsafe = true)
+      if allow_unsafe
+        classes_to_instantiate = subclasses
+      else
+        classes_to_instantiate = subclasses.select(&:safe)
+      end
+
+      classes_to_instantiate.collect do |subclass|
+        subclass.new(config)
+      end
+    end
 
     # Get or set the priority of this plugin. When called without an
     # argument it returns the priority. When an argument is given, it will
@@ -34,7 +46,6 @@ module Jekyll
     #
     # Returns the Symbol priority.
     def self.priority(priority = nil)
-      @priority ||= nil
       if priority && PRIORITIES.has_key?(priority)
         @priority = priority
       end

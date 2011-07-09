@@ -7,7 +7,7 @@ module Jekyll
                   :categories, :exclude, :source, :dest, :lsi, :pygments,
                   :permalink_style, :tags, :time, :future, :safe, :plugins, :limit_posts
 
-    attr_accessor :converters, :generators
+    attr_accessor :converters, :generators, :dependency_handlers
 
     # Public: Initialize a new Site.
     #
@@ -78,17 +78,9 @@ module Jekyll
         end
       end
 
-      self.converters = Jekyll::Converter.subclasses.select do |c|
-        !self.safe || c.safe
-      end.map do |c|
-        c.new(self.config)
-      end
-
-      self.generators = Jekyll::Generator.subclasses.select do |c|
-        !self.safe || c.safe
-      end.map do |c|
-        c.new(self.config)
-      end
+      self.converters = Jekyll::Converter.instantiate_all(self.config, !self.safe)
+      self.generators = Jekyll::Generator.instantiate_all(self.config, !self.safe)
+      self.dependency_handlers = Jekyll::DependencyHandler.instantiate_all(self.config, !self.safe)
     end
 
     # Read Site data from disk and load it into internal data structures.
@@ -195,7 +187,16 @@ module Jekyll
         self.static_files.each(&:mark_dirty)
       else
         resolve_basic = Proc.new do |item|
-          item.mark_dirty if item.explicit_dependencies.include?('*') or item.modified?(self.dest)
+          item.mark_dirty if item.modified?(self.dest)
+          item.explicit_dependencies.each do |dep_name|
+            dep_handled = self.dependency_handlers.find do |handler|
+              handler.handle(dep_name, item, self)
+            end
+            if not dep_handled
+              STDERR.puts "Warning: unknown dependency '#{dep_name}'"
+              STDERR.puts "\t#{item.source}"
+            end
+          end
         end
 
         self.pages.each(&resolve_basic)

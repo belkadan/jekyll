@@ -42,8 +42,10 @@ require 'jekyll/errors'
 require 'jekyll/plugin'
 require 'jekyll/converter'
 require 'jekyll/generator'
+require 'jekyll/dependency_handler'
 require_all 'jekyll/converters'
 require_all 'jekyll/generators'
+require_all 'jekyll/dependency_handlers'
 require_all 'jekyll/tags'
 
 module Jekyll
