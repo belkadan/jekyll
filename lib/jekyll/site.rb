@@ -255,28 +255,6 @@ module Jekyll
       end
     end
 
-    # Constructs a Hash of Posts indexed by the specified Post attribute.
-    #
-    # post_attr - The String name of the Post attribute.
-    #
-    # Examples
-    #
-    #   post_attr_hash('categories')
-    #   # => { 'tech' => [<Post A>, <Post B>],
-    #   #      'ruby' => [<Post B>] }
-    #
-    # Returns the Hash: { attr => posts } where
-    #   attr  - One of the values for the requested attribute.
-    #   posts - The Array of Posts with the given attr value.
-    def post_attr_hash(post_attr)
-      # Build a hash map based on the specified post attribute ( post attr =>
-      # array of posts ) then sort each array in reverse order.
-      hash = Hash.new { |hsh, key| hsh[key] = Array.new }
-      self.posts.each { |p| p.send(post_attr.to_sym).each { |t| hash[t] << p } }
-      hash.values.map { |sortme| sortme.sort! { |a, b| b <=> a } }
-      hash
-    end
-
     # The Hash payload containing site-wide data.
     #
     # Returns the Hash: { "site" => data } where data is a Hash with keys:
@@ -293,11 +271,11 @@ module Jekyll
     def site_payload
       {"site" => self.config.merge({
           "time"       => self.time,
-          "posts"      => self.posts.sort { |a, b| b <=> a },
+          "posts"      => self.posts.reverse,
           "pages"      => self.pages,
           "html_pages" => self.pages.reject { |page| !page.html? },
-          "categories" => post_attr_hash('categories'),
-          "tags"       => post_attr_hash('tags')})}
+          "categories" => self.categories,
+          "tags"       => self.tags})}
     end
 
     # Filter out any files/directories that are hidden or backup files (start
