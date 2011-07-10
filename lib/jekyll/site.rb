@@ -23,7 +23,7 @@ module Jekyll
       self.lsi             = config['lsi']
       self.pygments        = config['pygments']
       self.permalink_style = config['permalink'].to_sym
-      self.exclude         = config['exclude'] || []
+      self.exclude         = [config['exclude'], config['cmd_exclude']].compact.flatten
       self.future          = config['future']
       self.limit_posts     = config['limit_posts'] || nil
 

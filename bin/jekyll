@@ -127,8 +127,8 @@ opts = OptionParser.new do |opts|
     end
   end
 
-  opts.on("--exclude [FILES]", Array, "Exclude the given files") do |excludes|
-    options['exclude'] = excludes
+  opts.on("--exclude [FILES]", Array, "Exclude the given files IN ADDITION to those specified in _config.yml") do |excludes|
+    options['cmd_exclude'] = excludes
   end
 
   opts.on("--url [URL]", "Set custom site.url") do |url|
