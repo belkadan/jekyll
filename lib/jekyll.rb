@@ -36,6 +36,7 @@ require 'jekyll/page'
 require 'jekyll/post'
 require 'jekyll/filters'
 require 'jekyll/static_file'
+require 'jekyll/typed_promise'
 require 'jekyll/errors'
 
 # extensions

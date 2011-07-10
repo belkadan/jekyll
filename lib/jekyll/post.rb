@@ -186,7 +186,16 @@ module Jekyll
         "page" => self.to_liquid
       }.deep_merge(site_payload)
 
-      do_layout(payload, layouts)
+      if self.dirty?
+        do_layout(payload, layouts)
+      else
+        content = self.content
+        self.content = TypedPromise.new(String) do
+          self.content = content
+          do_layout(payload, layouts)
+          self.content
+        end
+      end
     end
     
     # Obtain destination path.
