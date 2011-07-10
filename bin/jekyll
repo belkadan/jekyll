@@ -127,6 +127,10 @@ opts = OptionParser.new do |opts|
     end
   end
 
+  opts.on("--exclude [FILES]", Array, "Exclude the given files") do |excludes|
+    options['exclude'] = excludes
+  end
+
   opts.on("--url [URL]", "Set custom site.url") do |url|
     options['url'] = url
   end
