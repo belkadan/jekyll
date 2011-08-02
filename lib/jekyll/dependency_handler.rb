@@ -15,6 +15,10 @@ module Jekyll
         super
         mark_dirty
       end
+
+      def mark_used
+        @dependencies.each(&:mark_used)
+      end
     end
     
     def handle(name, site)
