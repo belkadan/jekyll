@@ -132,14 +132,7 @@ module Jekyll
 
       layout = self.site.layouts[self.data['layout']]
       dependencies += layout.explicit_dependencies if layout
-
-      if self.data['dependencies']
-        if self.data['dependencies'].is_a?(Array)
-          dependencies += self.data['dependencies']
-        else
-          dependencies << self.data['dependencies']
-        end
-      end
+      dependencies += [*self.data['dependencies']] if self.data['dependencies']
       
       dependencies
     end

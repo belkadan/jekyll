@@ -159,6 +159,16 @@ module Jekyll
       return true if not File.exist?(dest_path)
       self.mtime > File.stat(dest_path).mtime
     end
+
+    def explicit_dependencies
+      dependencies = super
+      # For compatibility with plugins, no dependencies specified means
+      # dependent on every post.
+      if self.data['dependencies'].nil?
+        dependencies = ['*']
+      end
+      dependencies
+    end
   end
 
 end
