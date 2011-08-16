@@ -57,6 +57,16 @@ class TestSite < Test::Unit::TestCase
       assert_equal 4, @site.categories['foo'].size
     end
 
+    should "sort entries in categories and tags" do
+      @site.process
+      @site.categories.each_value do |entries|
+        assert_equal entries, entries.sort
+      end
+      @site.tags.each_value do |entries|
+        assert_equal entries, entries.sort
+      end
+    end
+
     should "filter entries" do
       ent1 = %w[foo.markdown bar.markdown baz.markdown #baz.markdown#
               .baz.markdow foo.markdown~]
