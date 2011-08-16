@@ -17,7 +17,7 @@ module Jekyll
       end
 
       def mark_used
-        @dependencies.each(&:mark_used)
+        @dependencies.each(&:mark_used) if @dependencies
       end
     end
     
