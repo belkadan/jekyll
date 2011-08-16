@@ -124,7 +124,7 @@ module Jekyll
     # Returns nothing.
     def read_directories(dir = '')
       base = File.join(self.source, dir)
-      entries = Dir.chdir(base) { filter_entries(Dir['*']) + Dir['.htaccess'] }
+      entries = filter_entries(Dir.entries(base))
 
       self.read_posts(dir)
 
@@ -326,10 +326,12 @@ module Jekyll
     # Returns the Array of filtered entries.
     def filter_entries(entries)
       entries = entries.reject do |e|
-        ['.', '_', '#'].include?(e[0..0]) ||
-        e[-1..-1] == '~' ||
-        self.exclude.include?(e) ||
-        File.symlink?(e)
+        unless ['.htaccess'].include?(e)
+          ['.', '_', '#'].include?(e[0..0]) ||
+          e[-1..-1] == '~' ||
+          self.exclude.include?(e) ||
+          File.symlink?(e)
+        end
       end
     end
 
