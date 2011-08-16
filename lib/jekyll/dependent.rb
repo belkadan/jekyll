@@ -13,20 +13,9 @@ module Jekyll
         end
       end
     end
-    
-    def add_dependent (d)
-      @dependent = [] unless @dependent
-      @dependent << d
-    end
 
     def dirty?
       @dirty
-    end
-    
-    def dependent_dirty
-      @dirty = true
-      self.mark_used
-      @dependencies.each(&:mark_used) if @dependencies
     end
 
     def mark_dirty
@@ -35,17 +24,31 @@ module Jekyll
       self.dependent_dirty
       @dependent.each(&:dependent_dirty) if @dependent
     end
-    
-    def marked_dirty?
-      @marked_dirty
+
+    def used?
+      @used
     end
-    
+
     def mark_used
       @used = true
     end
-    
-    def used?
-      @used
+
+    # The remaining methods are implementation detail.
+    protected
+
+    def add_dependent (d)
+      @dependent = [] unless @dependent
+      @dependent << d
+    end
+
+    def dependent_dirty
+      @dirty = true
+      self.mark_used
+      @dependencies.each(&:mark_used) if @dependencies
+    end
+
+    def marked_dirty?
+      @marked_dirty
     end
   end
 end
