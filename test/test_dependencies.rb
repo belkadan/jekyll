@@ -58,6 +58,7 @@ class TestDependencies < Test::Unit::TestCase
         @post2.add_dependency @post3
 
         @post3.mark_used
+
         assert !@post2.used?
         assert !@post.used?
       end
@@ -77,6 +78,7 @@ class TestDependencies < Test::Unit::TestCase
         @post2.add_dependency @post3
 
         @post.mark_dirty
+
         assert !@post2.dirty?
         assert !@post3.dirty?
       end
@@ -96,6 +98,7 @@ class TestDependencies < Test::Unit::TestCase
         @post2.add_dependency @post3
 
         @post3.mark_dirty
+
         assert @post2.dirty?
         assert !@post.dirty?
       end
@@ -115,6 +118,7 @@ class TestDependencies < Test::Unit::TestCase
         @post2.add_dependency @post3
 
         @post.mark_dirty
+
         assert @post2.used?
         assert !@post3.used?
       end
@@ -127,6 +131,52 @@ class TestDependencies < Test::Unit::TestCase
 
         assert @post2.used?
         assert !@post3.used?
+      end
+    end
+
+    context "in a dependency cycle" do
+      setup do
+        @other = Post.allocate
+      end
+
+      should "be able to handle being marked dirty" do
+        @post.add_dependency @other
+
+        @other.add_dependency @post
+        @post.mark_dirty
+
+        assert @post.dirty?
+        assert @other.dirty?
+      end
+
+      should "be able to handle being marked dirty beforehand" do
+        @post.mark_dirty
+
+        @post.add_dependency @other
+        @other.add_dependency @post
+
+        assert @post.dirty?
+        assert @other.dirty?
+      end
+
+      should "be able to handle the other post being dirty" do
+        @post.add_dependency @other
+        @other.add_dependency @post
+
+        @other.mark_dirty
+
+        assert @post.dirty?
+        assert @other.dirty?
+      end
+
+      should "be able to handle the other post being dirty beforehand" do
+        @other.mark_dirty
+
+        @post.add_dependency @other
+        @other.add_dependency @post
+
+        assert @post.dirty?
+        assert @other.dirty?
       end
     end
   end
