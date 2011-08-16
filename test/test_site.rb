@@ -4,7 +4,7 @@ class TestSite < Test::Unit::TestCase
   context "creating sites" do
     setup do
       stub(Jekyll).configuration do
-        Jekyll::DEFAULTS.merge({'source' => source_dir, 'destination' => dest_dir})
+        Jekyll::DEFAULTS.merge({'source' => source_dir, 'destination' => dest_dir, 'full' => true})
       end
       @site = Site.new(Jekyll.configuration)
     end
@@ -32,64 +32,6 @@ class TestSite < Test::Unit::TestCase
       assert_equal before_pages, @site.pages.length
       assert_equal before_static_files, @site.static_files.length
       assert before_time <= @site.time
-    end
-
-    should "write only modified static files" do
-      clear_dest
-      StaticFile.reset_cache
-
-      @site.process
-      some_static_file = @site.static_files[0].path
-      dest = File.expand_path(@site.static_files[0].destination(@site.dest))
-      mtime1 = File.stat(dest).mtime.to_i # first run must generate dest file
-
-      # need to sleep because filesystem timestamps have best resolution in seconds
-      sleep 1
-      @site.process
-      mtime2 = File.stat(dest).mtime.to_i
-      assert_equal mtime1, mtime2
-
-      # simulate file modification by user
-      FileUtils.touch some_static_file
-
-      sleep 1
-      @site.process
-      mtime3 = File.stat(dest).mtime.to_i
-      assert_not_equal mtime2, mtime3 # must be regenerated!
-
-      sleep 1
-      @site.process
-      mtime4 = File.stat(dest).mtime.to_i
-      assert_equal mtime3, mtime4 # no modifications, so must be the same
-    end
-
-    should "write static files if not modified but missing in destination" do
-      clear_dest
-      StaticFile.reset_cache
-
-      @site.process
-      some_static_file = @site.static_files[0].path
-      dest = File.expand_path(@site.static_files[0].destination(@site.dest))
-      mtime1 = File.stat(dest).mtime.to_i # first run must generate dest file
-
-      # need to sleep because filesystem timestamps have best resolution in seconds
-      sleep 1
-      @site.process
-      mtime2 = File.stat(dest).mtime.to_i
-      assert_equal mtime1, mtime2
-
-      # simulate destination file deletion
-      File.unlink dest
-
-      sleep 1
-      @site.process
-      mtime3 = File.stat(dest).mtime.to_i
-      assert_not_equal mtime2, mtime3 # must be regenerated and differ!
-
-      sleep 1
-      @site.process
-      mtime4 = File.stat(dest).mtime.to_i
-      assert_equal mtime3, mtime4 # no modifications, so must be the same
     end
 
     should "read layouts" do
@@ -163,6 +105,74 @@ class TestSite < Test::Unit::TestCase
         assert !File.exist?(dest_dir('quux'))
       end
 
+    end
+
+    context 'creating sites without forcing regeneration' do
+      setup do
+        stub(Jekyll).configuration do
+          Jekyll::DEFAULTS.merge({'source' => source_dir, 'destination' => dest_dir, 'full' => false})
+        end
+        @site = Site.new(Jekyll.configuration)
+      end
+
+      should "write only modified static files" do
+        clear_dest
+        StaticFile.reset_cache
+
+        @site.process
+        some_static_file = @site.static_files[0].path
+        dest = File.expand_path(@site.static_files[0].destination(@site.dest))
+        mtime1 = File.stat(dest).mtime.to_i # first run must generate dest file
+
+        # need to sleep because filesystem timestamps have best resolution in seconds
+        sleep 1
+        @site.process
+        mtime2 = File.stat(dest).mtime.to_i
+        assert_equal mtime1, mtime2
+
+        # simulate file modification by user
+        FileUtils.touch some_static_file
+
+        sleep 1
+        @site.process
+        mtime3 = File.stat(dest).mtime.to_i
+        assert_not_equal mtime2, mtime3 # must be regenerated!
+
+        sleep 1
+        @site.process
+        mtime4 = File.stat(dest).mtime.to_i
+        assert_equal mtime3, mtime4 # no modifications, so must be the same
+      end
+
+      should "write static files if not modified but missing in destination" do
+        clear_dest
+        StaticFile.reset_cache
+
+        @site.process
+        some_static_file = @site.static_files[0].path
+        dest = File.expand_path(@site.static_files[0].destination(@site.dest))
+        mtime1 = File.stat(dest).mtime.to_i # first run must generate dest file
+
+        # need to sleep because filesystem timestamps have best resolution in seconds
+        sleep 1
+        @site.process
+        mtime2 = File.stat(dest).mtime.to_i
+        assert_equal mtime1, mtime2
+
+        # simulate destination file deletion
+        File.unlink dest
+        StaticFile.reset_cache
+
+        sleep 1
+        @site.process
+        mtime3 = File.stat(dest).mtime.to_i
+        assert_not_equal mtime2, mtime3 # must be regenerated and differ!
+
+        sleep 1
+        @site.process
+        mtime4 = File.stat(dest).mtime.to_i
+        assert_equal mtime3, mtime4 # no modifications, so must be the same
+      end
     end
     
     context 'with an invalid markdown processor in the configuration' do

@@ -5,8 +5,9 @@ class TestPost < Test::Unit::TestCase
     Post.new(@site, source_dir, '', file)
   end
 
-  def do_render(post)
+  def do_render(post, force_render=true)
     layouts = { "default" => Layout.new(@site, source_dir('_layouts'), "simple.html")}
+    post.mark_dirty if force_render
     post.render(layouts, {"site" => {"posts" => []}})
   end
 
