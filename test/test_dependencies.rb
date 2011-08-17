@@ -179,6 +179,41 @@ class TestDependencies < Test::Unit::TestCase
         assert @other.dirty?
       end
     end
+
+    context "with a composite dependency" do
+      setup do
+        @dependency1 = Post.allocate
+        @dependency2 = Post.allocate
+        @composite_dependency = DependencyHandler::Dependency.new(@dependency1)
+        @composite_dependency << @dependency2
+        @post.add_dependency @composite_dependency
+      end
+
+      should "mark every dependency used but not dirty" do
+        @post.mark_dirty
+
+        assert @dependency1.used?
+        assert !@dependency1.dirty?
+        assert @dependency2.used?
+        assert !@dependency2.dirty?
+      end
+
+      should "not do anything if used but not dirty" do
+        @post.mark_used
+
+        assert !@dependency1.used?
+        assert !@dependency1.used?
+        assert !@dependency2.used?
+        assert !@dependency2.dirty?
+      end
+
+      should "be marked dirty if any dependency is dirty" do
+        @dependency1.mark_dirty
+
+        assert @post.dirty?
+        assert @dependency2.used?
+      end
+    end
   end
 
 end
