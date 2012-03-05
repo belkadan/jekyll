@@ -4,7 +4,7 @@ module Jekyll
 
   class Site
     attr_accessor :config, :layouts, :posts, :pages, :static_files,
-                  :categories, :exclude, :source, :dest, :lsi, :pygments,
+                  :categories, :exclude, :include, :source, :dest, :lsi, :pygments,
                   :permalink_style, :tags, :time, :future, :safe, :plugins,
                   :limit_posts, :dependencies
 
@@ -19,11 +19,12 @@ module Jekyll
       self.safe            = config['safe']
       self.source          = File.expand_path(config['source'])
       self.dest            = File.expand_path(config['destination'])
-      self.plugins         = File.expand_path(config['plugins'])
+      self.plugins         = Array(config['plugins']).map { |d| File.expand_path(d) }
       self.lsi             = config['lsi']
       self.pygments        = config['pygments']
       self.permalink_style = config['permalink'].to_sym
       self.exclude         = [config['exclude'], config['cmd_exclude']].compact.flatten
+      self.include         = config['include'] || []
       self.future          = config['future']
       self.limit_posts     = config['limit_posts'] || nil
 
@@ -81,8 +82,10 @@ module Jekyll
       # If safe mode is off, load in any Ruby files under the plugins
       # directory.
       unless self.safe
-        Dir[File.join(self.plugins, "**/*.rb")].each do |f|
-          require f
+        self.plugins.each do |plugins|
+            Dir[File.join(plugins, "**/*.rb")].each do |f|
+              require f
+            end
         end
       end
 
@@ -176,7 +179,10 @@ module Jekyll
       self.tags.each_value(&:sort!)
 
       # limit the posts if :limit_posts option is set
-      self.posts = self.posts[-limit_posts, limit_posts] if limit_posts
+      if limit_posts
+        limit = self.posts.length < limit_posts ? self.posts.length : limit_posts
+        self.posts = self.posts[-limit, limit]
+      end
     end
 
     # Run each of the Generators.
@@ -326,7 +332,7 @@ module Jekyll
     # Returns the Array of filtered entries.
     def filter_entries(entries)
       entries = entries.reject do |e|
-        unless ['.htaccess'].include?(e)
+        unless self.include.include?(e)
           ['.', '_', '#'].include?(e[0..0]) ||
           e[-1..-1] == '~' ||
           self.exclude.include?(e) ||
