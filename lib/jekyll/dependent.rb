@@ -33,9 +33,6 @@ module Jekyll
       @used = true
     end
 
-    # The remaining methods are implementation detail.
-    protected
-
     def add_dependent (d)
       @dependent = [] unless @dependent
       @dependent << d
