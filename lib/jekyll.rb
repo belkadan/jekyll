@@ -70,6 +70,7 @@ module Jekyll
     'markdown'     => 'maruku',
     'permalink'    => 'date',
     'include'      => ['.htaccess'],
+    'paginate_path' => 'page:num',
 
     'markdown_ext' => 'markdown,mkd,mkdn,md',
     'textile_ext'  => 'textile',
@@ -92,6 +93,7 @@ module Jekyll
       'footnote_nr'   => 1,
       'entity_output' => 'as_char',
       'toc_levels'    => '1..6',
+      'smart_quotes'  => 'lsquo,rsquo,ldquo,rdquo',
       'use_coderay'   => false,
 
       'coderay' => {
