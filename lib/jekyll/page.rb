@@ -166,7 +166,11 @@ module Jekyll
     def modified?(dest)
       dest_path = self.destination(dest)
       return true if not File.exist?(dest_path)
-      self.mtime > File.stat(dest_path).mtime
+      if (self.mtime <=> File.stat(dest_path).mtime) == 1 then                                                            
+         return true
+      else                                                  
+         return false                                        
+      end    
     end
 
     def explicit_dependencies
